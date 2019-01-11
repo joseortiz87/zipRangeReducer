@@ -22,7 +22,7 @@ public class ZipRangeReducer {
 	/**
 	 * MAIN APP RUNNER
 	 * User can give the path to the file or use the default one the src folder
-	 * @param args
+	 * @param args Path to File that have the ranges 
 	 */
 	public static void main(String args []) {
 		
@@ -34,10 +34,10 @@ public class ZipRangeReducer {
 		//(2) Sort ranges asc order to help find the overlapping in the next elements, O(log(n))
 		sortZipRanges(ranges);
 		
-		//(3) Find the overlapping and merge the ranges, return the new ranges
+		//(3) Find the overlapping and merge the ranges, return the new ranges O(n-1)
 		ranges = reduceZipRanges(ranges);
 
-		//(4) Print result
+		//(4) Print result O(n)
 		for(ZipRange zipRange : ranges) {
 			System.out.println(zipRange);
 		}
@@ -95,17 +95,10 @@ public class ZipRangeReducer {
      */
     public static List<ZipRange> reduceZipRanges(List<ZipRange> listZipRangeToReduce){
     	List<ZipRange> listNewZipRange = new ArrayList<>();
-        boolean[] rangeMerged = new boolean[listZipRangeToReduce.size()];
         int i = 0;
         
         while(i < listZipRangeToReduce.size()) {
         	ZipRange zipRange = listZipRangeToReduce.get(i);
-        	
-        	//AVOID REPETING EXPLORED ELEMENTS
-        	if (rangeMerged[i]) {
-        		i++;
-        		continue;
-        	}
 
         	//INCLUDE LAST RANGE
 		    if (i == (listZipRangeToReduce.size() - 1) ){
@@ -116,13 +109,14 @@ public class ZipRangeReducer {
 		    //FIND OVERLAPPINGS
 		    ZipRange nextZipRange = listZipRangeToReduce.get(i+1);
 		    if(zipRange.getUpper() >= nextZipRange.getLower()) {
-		         if (zipRange.getUpper() >= nextZipRange.getUpper())
-		         	listNewZipRange.add(new ZipRange(zipRange.getLower(),zipRange.getUpper()));
-		         else
-		         	listNewZipRange.add(new ZipRange(zipRange.getLower(),nextZipRange.getUpper()));
-
-		         //keep track of the ranges that are merges from the original list.
-		         rangeMerged[i+1] = true;
+		    	 //UPDATE NEXT Zip with the new overlapping range and keep comparing
+		         if (zipRange.getUpper() >= nextZipRange.getUpper()) {
+		         	// i contains i+1
+		         	listZipRangeToReduce.set(i+1, new ZipRange(zipRange.getLower(),zipRange.getUpper()));
+		         }else {
+		         	// i+1 has the upper value
+		         	listZipRangeToReduce.set(i+1, new ZipRange(zipRange.getLower(),nextZipRange.getUpper()));
+		         }
 		    }else {
 		    	//if there is no overlapping
 		    	listNewZipRange.add(zipRange);
